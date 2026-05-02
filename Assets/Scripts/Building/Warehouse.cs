@@ -6,8 +6,18 @@ using UnityEngine;
 
 public class Warehouse : MonoBehaviour
 {
+    [Serializable]
+    public struct InitialStock
+    {
+        [LabelText("资源 ID")]  public int ResourceId;
+        [LabelText("初始数量")] public int Amount;
+    }
+
     [LabelText("出入口")]
     [SerializeField] public Transform Port;
+
+    [LabelText("初始库存（测试用）")]
+    [SerializeField] private List<InitialStock> _initialStocks = new List<InitialStock>();
 
     public int Capacity { get; private set; }
     public int TotalCount { get; private set; }
@@ -24,6 +34,12 @@ public class Warehouse : MonoBehaviour
         Capacity = capacity;
         TotalCount = 0;
         _stocks.Clear();
+
+        foreach (var entry in _initialStocks)
+        {
+            if (entry.Amount > 0)
+                TryAdd(entry.ResourceId, entry.Amount);
+        }
     }
 
     public int GetCount(int resourceId)

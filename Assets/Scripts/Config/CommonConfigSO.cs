@@ -23,8 +23,8 @@ public class CommonConfigSO : ScriptableObject
     [SerializeField] private int _warehouseCapacity = 10;
     public int WarehouseCapacity => _warehouseCapacity;
 
-    [Tooltip("资源 Lerp 动画的持续时间（秒）")]
-    [LabelText("动画时长")]
-    [SerializeField] private float _animationDuration = 0.5f;
-    public float AnimationDuration => _animationDuration;
+    [Tooltip("资源运送速度（单位/秒），时长由距离÷速度自动计算")]
+    [LabelText("运送速度")]
+    [SerializeField] private float _resourceMoveSpeed = 5f;
+    public float ResourceMoveSpeed => _resourceMoveSpeed;
 }

@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: CommonConfigSO
   m_EditorClassIdentifier: Assembly-CSharp::CommonConfigSO
   _warehouseCapacity: 10
-  _animationDuration: 2
+  _resourceMoveSpeed: 15

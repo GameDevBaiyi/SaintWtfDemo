@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 
 using Sirenix.OdinInspector;
+
 using UnityEngine;
 
 public class ProductionBuilding : MonoBehaviour
@@ -27,9 +28,11 @@ public class ProductionBuilding : MonoBehaviour
     private bool _isStopped;
     private StopReason _currentStopReason;
 
-    // 复用列表，避免在循环中分配
-    private List<ResourceConfig> _animResourceConfigs = new List<ResourceConfig>();
-    private List<int> _animCounts = new List<int>();
+    // 复用列表，避免在循环中分配（输入/输出动画各持独立列表，防止并发覆盖）
+    private List<ResourceConfig> _inputAnimConfigs = new List<ResourceConfig>();
+    private List<int> _inputAnimCounts = new List<int>();
+    private List<ResourceConfig> _outputAnimConfigs = new List<ResourceConfig>();
+    private List<int> _outputAnimCounts = new List<int>();
 
     private void Start()
     {
@@ -54,89 +57,125 @@ public class ProductionBuilding : MonoBehaviour
 
         while (!token.IsCancellationRequested)
         {
+            // 周期开头：检查能否生产
+            if (!CanProduce(out StopReason stopReason))
+            {
+                NotifyStopped(stopReason);
+                await UniTask.Delay(TimeSpan.FromSeconds(_config.ProductionInterval), cancellationToken: token);
+                continue;
+            }
+
+            // 条件满足，若之前停产则恢复
+            if (_isStopped)
+            {
+                _isStopped = false;
+                OnProductionResumed?.Invoke();
+                Debug.Log($"[{_config.Name}] Production resumed.");
+            }
+
+            // 周期开头：播放「仓库 → 建筑」动画（纯视觉，与生产等待并行，暂不扣资源）
+            PlayInputAnimAsync().Forget();
+
+            // 等待整个生产周期
             await UniTask.Delay(TimeSpan.FromSeconds(_config.ProductionInterval), cancellationToken: token);
 
-            await TryProduceAsync(token);
+            // 周期结尾：实际扣除输入资源
+            if (_config.Inputs != null)
+            {
+                foreach (InputRequirement req in _config.Inputs)
+                {
+                    _inputWarehouse.TryRemove(req.ResourceId, req.Count);
+                }
+            }
+
+            // 周期结尾：写入输出资源
+            if (_config.Outputs != null)
+            {
+                foreach (OutputRequirement req in _config.Outputs)
+                {
+                    _outputWarehouse.TryAdd(req.ResourceId, req.Count);
+                }
+            }
+
+            Debug.Log($"[{_config.Name}] Production complete. Output={_outputWarehouse.TotalCount}/{_outputWarehouse.Capacity}");
+
+            // 周期结尾：播放「建筑 → 仓库」动画（fire-and-forget，不阻塞下一周期）
+            PlayOutputAnimAsync().Forget();
         }
     }
 
-    private async UniTask TryProduceAsync(System.Threading.CancellationToken token)
+    private bool CanProduce(out StopReason stopReason)
     {
-        // 检查停产条件：输出仓库已满
         if (_outputWarehouse.IsFull)
         {
-            NotifyStopped(StopReason.OutputFull);
-            return;
+            stopReason = StopReason.OutputFull;
+            return false;
         }
 
-        // 检查停产条件：输入资源不足
         if (_config.Inputs != null)
         {
             foreach (InputRequirement req in _config.Inputs)
             {
                 if (!_inputWarehouse.HasEnough(req.ResourceId, req.Count))
                 {
-                    NotifyStopped(StopReason.InputShortage);
-                    return;
+                    stopReason = StopReason.InputShortage;
+                    return false;
                 }
             }
         }
 
-        // 条件满足，若之前停产则恢复
-        if (_isStopped)
+        stopReason = default;
+        return true;
+    }
+
+    // 周期开头动画：仓库 → 建筑（fire-and-forget，与生产等待并行）
+    private async UniTaskVoid PlayInputAnimAsync()
+    {
+        if (_config.Inputs == null
+         || _config.Inputs.Count == 0) return;
+
+        _inputAnimConfigs.Clear();
+        _inputAnimCounts.Clear();
+
+        foreach (InputRequirement req in _config.Inputs)
         {
-            _isStopped = false;
-            OnProductionResumed?.Invoke();
-            Debug.Log($"[{_config.Name}] Production resumed.");
-        }
-
-        // 消耗输入资源并播放「仓库 → 建筑」动画
-        if (_config.Inputs != null
-         && _config.Inputs.Count > 0)
-        {
-            _animResourceConfigs.Clear();
-            _animCounts.Clear();
-
-            foreach (InputRequirement req in _config.Inputs)
+            ResourceConfig resConfig = ResourceConfigSO.Instance.GetById(req.ResourceId);
+            if (resConfig != null)
             {
-                _inputWarehouse.TryRemove(req.ResourceId, req.Count);
-                ResourceConfig resConfig = ResourceConfigSO.Instance.GetById(req.ResourceId);
-                if (resConfig != null)
-                {
-                    _animResourceConfigs.Add(resConfig);
-                    _animCounts.Add(req.Count);
-                }
-            }
-
-            if (_animResourceConfigs.Count > 0)
-            {
-                await _resourceMover.MoveAsync(_animResourceConfigs, _animCounts, _inputWarehouse.Port, Port, CommonConfigSO.Instance.AnimationDuration);
+                _inputAnimConfigs.Add(resConfig);
+                _inputAnimCounts.Add(req.Count);
             }
         }
 
-        // 产出输出资源并播放「建筑 → 仓库」动画
-        if (_config.Outputs != null && _config.Outputs.Count > 0)
+        if (_inputAnimConfigs.Count > 0)
         {
-            _animResourceConfigs.Clear();
-            _animCounts.Clear();
+            await _resourceMover.MoveAsync(_inputAnimConfigs, _inputAnimCounts, _inputWarehouse.Port, Port, CommonConfigSO.Instance.ResourceMoveSpeed);
+        }
+    }
 
-            foreach (OutputRequirement req in _config.Outputs)
+    // 周期结尾动画：建筑 → 仓库（fire-and-forget，不阻塞下一周期）
+    private async UniTaskVoid PlayOutputAnimAsync()
+    {
+        if (_config.Outputs == null
+         || _config.Outputs.Count == 0) return;
+
+        _outputAnimConfigs.Clear();
+        _outputAnimCounts.Clear();
+
+        foreach (OutputRequirement req in _config.Outputs)
+        {
+            ResourceConfig resConfig = ResourceConfigSO.Instance.GetById(req.ResourceId);
+            if (resConfig != null)
             {
-                _outputWarehouse.TryAdd(req.ResourceId, req.Count);
-                ResourceConfig resConfig = ResourceConfigSO.Instance.GetById(req.ResourceId);
-                if (resConfig != null)
-                {
-                    _animResourceConfigs.Add(resConfig);
-                    _animCounts.Add(req.Count);
-                }
+                _outputAnimConfigs.Add(resConfig);
+                _outputAnimCounts.Add(req.Count);
             }
+        }
 
-            if (_animResourceConfigs.Count > 0)
-            {
-                await _resourceMover.MoveAsync(_animResourceConfigs, _animCounts, Port, _outputWarehouse.Port, CommonConfigSO.Instance.AnimationDuration);
-            }
-
-            Debug.Log($"[{_config.Name}] Production complete. Output={_outputWarehouse.TotalCount}/{_outputWarehouse.Capacity}");
+        if (_outputAnimConfigs.Count > 0)
+        {
+            await _resourceMover.MoveAsync(_outputAnimConfigs, _outputAnimCounts, Port, _outputWarehouse.Port,
+                                           CommonConfigSO.Instance.ResourceMoveSpeed);
         }
     }
 

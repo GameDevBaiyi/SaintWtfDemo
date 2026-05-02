@@ -19,7 +19,7 @@ MonoBehaviour:
     Outputs:
     - ResourceId: 1
       Count: 1
-    ProductionInterval: 5
+    ProductionInterval: 3
   - Id: 2
     Name: B2
     Inputs:
@@ -28,7 +28,7 @@ MonoBehaviour:
     Outputs:
     - ResourceId: 2
       Count: 1
-    ProductionInterval: 5
+    ProductionInterval: 4
   - Id: 3
     Name: B3
     Inputs:
