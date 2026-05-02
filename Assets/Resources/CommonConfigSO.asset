@@ -14,3 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CommonConfigSO
   _warehouseCapacity: 10
   _resourceMoveSpeed: 15
+  _playerMoveSpeed: 5
+  _playerRotateSpeed: 10
+  _backpackCapacity: 30
+  _backpackMaxPerColumn: 7

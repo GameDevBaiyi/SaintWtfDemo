@@ -47,4 +47,7 @@ public class ResourceConfig
     [Tooltip("并排动画时每个堆的占位尺寸（米）")]
     [LabelText("堆叠尺寸")]
     public Vector3 StackSize;
+    [Tooltip("背包显示用球形 Prefab")]
+    [LabelText("背包球 Prefab")]
+    public GameObject BackpackItemPrefab;
 }

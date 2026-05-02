@@ -37,4 +37,13 @@ public class CommonConfigSO : ScriptableObject
     [LabelText("玩家旋转速度")]
     [SerializeField] private float _playerRotateSpeed = 10f;
     public float PlayerRotateSpeed => _playerRotateSpeed;
+
+    [LabelText("背包容量")]
+    [SerializeField] private int _backpackCapacity = 10;
+    public int BackpackCapacity => _backpackCapacity;
+
+    [Tooltip("背包每列最大 Y 轴堆叠数量")]
+    [LabelText("背包每列容量")]
+    [SerializeField] private int _backpackMaxPerColumn = 3;
+    public int BackpackMaxPerColumn => _backpackMaxPerColumn;
 }

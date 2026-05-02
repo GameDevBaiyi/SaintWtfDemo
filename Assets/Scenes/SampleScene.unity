@@ -996,6 +996,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4422409027413965536, guid: f9830f78f35998640841370e9bc1c5f6, type: 3}
   m_PrefabInstance: {fileID: 608837244}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &618007463
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 618007464}
+  m_Layer: 0
+  m_Name: BackpackRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &618007464
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 618007463}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.5, z: -0.8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2007378952}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &685657616
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1836,6 +1867,53 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a47f546fc70ec8428172694e78e4288, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1533233789
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1533233790}
+  - component: {fileID: 1533233791}
+  m_Layer: 0
+  m_Name: TestSomething
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1533233790
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1533233789}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1533233791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1533233789}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0269433225a50ee4a8b90f995cf6bc0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TestSomething
+  _backpackModel: {fileID: 0}
+  _resourceId: 1
+  _amount: 1
 --- !u!1 &1582185940
 GameObject:
   m_ObjectHideFlags: 0
@@ -2228,6 +2306,8 @@ GameObject:
   - component: {fileID: 2007378952}
   - component: {fileID: 2007378954}
   - component: {fileID: 2007378953}
+  - component: {fileID: 2007378956}
+  - component: {fileID: 2007378955}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -2249,6 +2329,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 935465589}
+  - {fileID: 618007464}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2007378953
@@ -2289,6 +2370,33 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2007378955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2007378951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57eb3ded0d08c854f8c831fd62849661, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BackpackView
+  _backpackModel: {fileID: 2007378956}
+  _backpackRoot: {fileID: 618007464}
+  _spacing: 0.3
+--- !u!114 &2007378956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2007378951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77d13c718a3e90141a06ff782bf3cc5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BackpackModel
 --- !u!1 &2034385916 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4513104305953241174, guid: 95716c5211f71794d9334105066c79c7, type: 3}
@@ -2496,8 +2604,9 @@ SceneRoots:
   - {fileID: 1394448224}
   - {fileID: 352407040}
   - {fileID: 1650965016}
+  - {fileID: 2007378952}
   - {fileID: 1439490140}
   - {fileID: 464487517}
   - {fileID: 788274531}
   - {fileID: 1764436863}
-  - {fileID: 2007378952}
+  - {fileID: 1533233790}

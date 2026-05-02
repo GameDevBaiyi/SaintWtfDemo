@@ -17,11 +17,14 @@ MonoBehaviour:
     Name: N1
     StackPrefab: {fileID: 4276497198612553116, guid: 3c9fe413fe061f244876d404652a4177, type: 3}
     StackSize: {x: 0.9, y: 1.2, z: 0.3}
+    BackpackItemPrefab: {fileID: 8785673575095380671, guid: d0c677816ccf36947a0592e237aee798, type: 3}
   - Id: 2
     Name: N2
     StackPrefab: {fileID: 8855102673115339182, guid: 0a4f4c5072fa2a8478f442df7d077bdc, type: 3}
     StackSize: {x: 0.9, y: 1.2, z: 0.3}
+    BackpackItemPrefab: {fileID: 6683838671278910012, guid: 63a2b3148b7300741a48d892e281d87f, type: 3}
   - Id: 3
     Name: N3
     StackPrefab: {fileID: 4259859589058525439, guid: 17629d7688bf62a40ad4728a27169008, type: 3}
     StackSize: {x: 0.9, y: 1.2, z: 0.3}
+    BackpackItemPrefab: {fileID: 7337902575880296698, guid: dacf0c2cfa215eb458b4e61389fc89aa, type: 3}
