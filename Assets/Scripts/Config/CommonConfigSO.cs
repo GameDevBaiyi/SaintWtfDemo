@@ -46,4 +46,9 @@ public class CommonConfigSO : ScriptableObject
     [LabelText("背包每列容量")]
     [SerializeField] private int _backpackMaxPerColumn = 3;
     public int BackpackMaxPerColumn => _backpackMaxPerColumn;
+
+    [Tooltip("玩家与仓库交互时每个资源单位的转移间隔（秒）")]
+    [LabelText("资源转移间隔")]
+    [SerializeField] private float _transferInterval = 0.5f;
+    public float TransferInterval => _transferInterval;
 }

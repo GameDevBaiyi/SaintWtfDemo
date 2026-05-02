@@ -10,6 +10,7 @@ public class BackpackModel : MonoBehaviour
     public int Capacity { get; private set; }
     public int TotalCount { get; private set; }
     public bool IsFull => TotalCount >= Capacity;
+    public bool IsEmpty => TotalCount == 0;
 
     private Dictionary<int, int> _items = new Dictionary<int, int>();
 

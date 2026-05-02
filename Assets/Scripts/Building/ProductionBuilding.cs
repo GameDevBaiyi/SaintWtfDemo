@@ -27,6 +27,7 @@ public class ProductionBuilding : MonoBehaviour
     private BuildingConfig _config;
     private bool _isStopped;
     private StopReason _currentStopReason;
+    private float _outputAnimDuration; // 缓存输出动画时长，用于精确扣除等待时间
 
     // 复用列表，避免在循环中分配（输入/输出动画各持独立列表，防止并发覆盖）
     private List<ResourceConfig> _inputAnimConfigs = new List<ResourceConfig>();
@@ -43,10 +44,38 @@ public class ProductionBuilding : MonoBehaviour
             return;
         }
 
-        // 初始化仓库（方案B：仓库支持多种资源类型，不绑定单一 ResourceId）
         int capacity = CommonConfigSO.Instance.WarehouseCapacity;
-        _inputWarehouse.Init(capacity);
-        _outputWarehouse.Init(capacity);
+
+        List<int> inputResourceIds = new List<int>();
+        if (_config.Inputs != null)
+        {
+            foreach (InputRequirement req in _config.Inputs)
+                inputResourceIds.Add(req.ResourceId);
+        }
+
+        List<int> outputResourceIds = new List<int>();
+        if (_config.Outputs != null)
+        {
+            foreach (OutputRequirement req in _config.Outputs)
+                outputResourceIds.Add(req.ResourceId);
+        }
+
+        _inputWarehouse.Init(capacity,  isInput: true,  acceptedResourceIds: inputResourceIds);
+        _outputWarehouse.Init(capacity, isInput: false, acceptedResourceIds: outputResourceIds);
+
+        // 校验并缓存输出动画时长
+        if (Port != null && _outputWarehouse != null && _outputWarehouse.Port != null
+            && _config.Outputs != null && _config.Outputs.Count > 0)
+        {
+            float animDistance = Vector3.Distance(Port.position, _outputWarehouse.Port.position);
+            _outputAnimDuration = animDistance / CommonConfigSO.Instance.ResourceMoveSpeed;
+            if (_outputAnimDuration >= _config.ProductionInterval)
+            {
+                Debug.LogError(
+                    $"[ProductionBuilding] '{_config.Name}' 输出动画时长 ({_outputAnimDuration:F2}s) >= 生产周期 ({_config.ProductionInterval:F2}s)，" +
+                    $"将导致周期被阻塞。请加大 ProductionInterval 或提高 ResourceMoveSpeed。", this);
+            }
+        }
 
         RunProductionLoopAsync().Forget();
     }
@@ -76,8 +105,14 @@ public class ProductionBuilding : MonoBehaviour
             // 周期开头：播放「仓库 → 建筑」动画（纯视觉，与生产等待并行，暂不扣资源）
             PlayInputAnimAsync().Forget();
 
-            // 等待整个生产周期
-            await UniTask.Delay(TimeSpan.FromSeconds(_config.ProductionInterval), cancellationToken: token);
+            // 等待（生产周期 - 输出动画时长），使总周期精确等于 ProductionInterval
+            float waitTime = Mathf.Max(0f, _config.ProductionInterval - _outputAnimDuration);
+            await UniTask.Delay(TimeSpan.FromSeconds(waitTime), cancellationToken: token);
+
+
+            // 周期结尾：播放「建筑 → 仓库」动画，动画完成后写入输出资源
+            await PlayOutputAnimAsync();
+
 
             // 周期结尾：实际扣除输入资源
             if (_config.Inputs != null)
@@ -88,7 +123,6 @@ public class ProductionBuilding : MonoBehaviour
                 }
             }
 
-            // 周期结尾：写入输出资源
             if (_config.Outputs != null)
             {
                 foreach (OutputRequirement req in _config.Outputs)
@@ -98,9 +132,6 @@ public class ProductionBuilding : MonoBehaviour
             }
 
             Debug.Log($"[{_config.Name}] Production complete. Output={_outputWarehouse.TotalCount}/{_outputWarehouse.Capacity}");
-
-            // 周期结尾：播放「建筑 → 仓库」动画（fire-and-forget，不阻塞下一周期）
-            PlayOutputAnimAsync().Forget();
         }
     }
 
@@ -153,8 +184,8 @@ public class ProductionBuilding : MonoBehaviour
         }
     }
 
-    // 周期结尾动画：建筑 → 仓库（fire-and-forget，不阻塞下一周期）
-    private async UniTaskVoid PlayOutputAnimAsync()
+    // 周期结尾动画：建筑 → 仓库（await，动画完成后主循环才写入输出资源）
+    private async UniTask PlayOutputAnimAsync()
     {
         if (_config.Outputs == null
          || _config.Outputs.Count == 0) return;

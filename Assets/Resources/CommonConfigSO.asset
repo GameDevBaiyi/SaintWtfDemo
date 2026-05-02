@@ -18,3 +18,4 @@ MonoBehaviour:
   _playerRotateSpeed: 10
   _backpackCapacity: 30
   _backpackMaxPerColumn: 7
+  _transferInterval: 1
