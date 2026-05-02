@@ -27,4 +27,14 @@ public class CommonConfigSO : ScriptableObject
     [LabelText("运送速度")]
     [SerializeField] private float _resourceMoveSpeed = 5f;
     public float ResourceMoveSpeed => _resourceMoveSpeed;
+
+    [Tooltip("玩家移动速度（单位/秒）")]
+    [LabelText("玩家移动速度")]
+    [SerializeField] private float _playerMoveSpeed = 5f;
+    public float PlayerMoveSpeed => _playerMoveSpeed;
+
+    [Tooltip("玩家朝向旋转速度（度/秒，Slerp t 系数）")]
+    [LabelText("玩家旋转速度")]
+    [SerializeField] private float _playerRotateSpeed = 10f;
+    public float PlayerRotateSpeed => _playerRotateSpeed;
 }
