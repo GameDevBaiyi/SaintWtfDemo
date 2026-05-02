@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f094ec8917f7f7d4daca0c19df8480c8, type: 3}
+  m_Name: ResourceConfigSO
+  m_EditorClassIdentifier: Assembly-CSharp::ResourceConfigSO
+  _resources:
+  - Id: 1
+    Name: N1
+    StackPrefab: {fileID: 4276497198612553116, guid: 3c9fe413fe061f244876d404652a4177, type: 3}
+    StackSize: {x: 0.9, y: 1.2, z: 0.3}
+  - Id: 2
+    Name: N2
+    StackPrefab: {fileID: 8855102673115339182, guid: 0a4f4c5072fa2a8478f442df7d077bdc, type: 3}
+    StackSize: {x: 0.9, y: 1.2, z: 0.3}
+  - Id: 3
+    Name: N3
+    StackPrefab: {fileID: 4259859589058525439, guid: 17629d7688bf62a40ad4728a27169008, type: 3}
+    StackSize: {x: 0.9, y: 1.2, z: 0.3}

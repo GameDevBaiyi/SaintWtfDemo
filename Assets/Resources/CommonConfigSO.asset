@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62fc6ade01500514e97d4a11a9a9f32f, type: 3}
+  m_Name: CommonConfigSO
+  m_EditorClassIdentifier: Assembly-CSharp::CommonConfigSO
+  _warehouseCapacity: 10
+  _animationDuration: 2
