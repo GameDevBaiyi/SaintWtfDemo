@@ -51,4 +51,9 @@ public class CommonConfigSO : ScriptableObject
     [LabelText("资源转移间隔")]
     [SerializeField] private float _transferInterval = 0.5f;
     public float TransferInterval => _transferInterval;
+
+    [Tooltip("转移动画抛物线弧高（贝塞尔控制点上移量，单位：米）")]
+    [LabelText("转移动画弧高")]
+    [SerializeField] private float _transferArcHeight = 2f;
+    public float TransferArcHeight => _transferArcHeight;
 }

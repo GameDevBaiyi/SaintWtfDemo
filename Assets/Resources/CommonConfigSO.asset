@@ -19,3 +19,4 @@ MonoBehaviour:
   _backpackCapacity: 30
   _backpackMaxPerColumn: 7
   _transferInterval: 1
+  _transferArcHeight: 6

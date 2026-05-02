@@ -12,6 +12,9 @@ public class WarehouseInteractor : MonoBehaviour
     [LabelText("玩家背包")]
     [SerializeField] private BackpackModel _backpackModel;
 
+    [LabelText("转移动画")]
+    [SerializeField] private TransferAnimator _transferAnimator;
+
     private CancellationTokenSource _cts;
 
     private void OnTriggerEnter(Collider other)
@@ -72,10 +75,7 @@ public class WarehouseInteractor : MonoBehaviour
 
     private async UniTaskVoid PickupLoopAsync(Warehouse warehouse, CancellationToken token)
     {
-        float interval = CommonConfigSO.Instance.TransferInterval;
         IReadOnlyList<int> acceptedIds = warehouse.AcceptedResourceIds;
-
-        await UniTask.WaitForSeconds(interval, cancellationToken: token); // 初次进入等待
 
         while (!token.IsCancellationRequested)
         {
@@ -94,27 +94,19 @@ public class WarehouseInteractor : MonoBehaviour
                 continue;
             }
 
-            bool removed = warehouse.TryRemove(resourceId, 1);
-            if (!removed) { await UniTask.Yield(token); continue; }
+            ResourceConfig config = ResourceConfigSO.Instance.GetById(resourceId);
 
-            bool added = _backpackModel.TryAdd(resourceId, 1);
-            if (!added)
-            {
-                // 回滚：背包加不进去，将资源还给仓库
-                warehouse.TryAdd(resourceId, 1);
-                break;
-            }
+            // 动画先行：飞行结束后才写入数据；token 取消时球体销毁，异常退出循环
+            await _transferAnimator.PlayPickupAsync(config, warehouse.Port, token);
 
-            await UniTask.WaitForSeconds(interval, cancellationToken: token); // 成功后等待下次
+            warehouse.TryRemove(resourceId, 1);
+            _backpackModel.TryAdd(resourceId, 1);
         }
     }
 
     private async UniTaskVoid DeliveryLoopAsync(Warehouse warehouse, CancellationToken token)
     {
-        float interval = CommonConfigSO.Instance.TransferInterval;
         IReadOnlyList<int> acceptedIds = warehouse.AcceptedResourceIds;
-
-        await UniTask.WaitForSeconds(interval, cancellationToken: token); // 初次进入等待
 
         while (!token.IsCancellationRequested)
         {
@@ -136,19 +128,13 @@ public class WarehouseInteractor : MonoBehaviour
                 continue;
             }
 
-            bool removed = _backpackModel.TryRemove(deliverId, 1);
-            if (!removed) { await UniTask.Yield(token); continue; }
+            ResourceConfig config = ResourceConfigSO.Instance.GetById(deliverId);
 
-            bool added = warehouse.TryAdd(deliverId, 1);
-            if (!added)
-            {
-                // 回滚：仓库加不进去，将资源还给背包
-                _backpackModel.TryAdd(deliverId, 1);
-                await UniTask.Yield(token);
-                continue;
-            }
+            // 动画先行：飞行结束后才写入数据；token 取消时球体销毁，异常退出循环
+            await _transferAnimator.PlayDeliveryAsync(config, warehouse.Port, token);
 
-            await UniTask.WaitForSeconds(interval, cancellationToken: token); // 成功后等待下次
+            _backpackModel.TryRemove(deliverId, 1);
+            warehouse.TryAdd(deliverId, 1);
         }
     }
 }
