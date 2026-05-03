@@ -1,29 +1,18 @@
-using Sirenix.OdinInspector;
-
 using TMPro;
 
 using UnityEngine;
 
-public class BuildingStatusUI : MonoBehaviour
+public class BuildingStatusUI
 {
-    [LabelText("生产建筑")]
-    [SerializeField] private ProductionBuilding _building;
-
-    [Tooltip("头顶 UI 的世界坐标锚点（建筑正上方的子 Transform）")]
-    [LabelText("头顶锚点")]
-    [SerializeField] private Transform _worldAnchor;
-
-    [Tooltip("停产提示的 UI Prefab，需包含 TextMeshProUGUI 组件")]
-    [LabelText("停产提示 Prefab")]
-    [SerializeField] private GameObject _statusPrefab;
-
+    private readonly ProductionBuilding _building;
     private TextMeshProUGUI _text;
 
-    private void Start()
+    public BuildingStatusUI(ProductionBuilding building, DynamicUIManager uiManager)
     {
-        RectTransform panel = DynamicCanvas.Instance.RegisterAnchor(_worldAnchor);
+        _building = building;
 
-        GameObject instance = Instantiate(_statusPrefab, panel);
+        RectTransform panel = uiManager.RegisterAnchor(building.transform);
+        GameObject instance = uiManager.InstantiateInPanel(uiManager.StatusPrefab, panel);
         _text = instance.GetComponentInChildren<TextMeshProUGUI>(true);
         _text.gameObject.SetActive(false);
 
@@ -31,7 +20,7 @@ public class BuildingStatusUI : MonoBehaviour
         _building.OnProductionResumed += HandleResumed;
     }
 
-    private void OnDestroy()
+    public void Dispose()
     {
         if (_building != null)
         {

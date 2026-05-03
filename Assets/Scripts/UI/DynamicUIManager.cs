@@ -1,11 +1,22 @@
 using System.Collections.Generic;
 
+using Core.Utilities;
+
+using Sirenix.OdinInspector;
+
 using UnityEngine;
 
 [RequireComponent(typeof(Canvas))]
-public class DynamicCanvas : MonoBehaviour
+public class DynamicUIManager : SingletonMono<DynamicUIManager>
 {
-    public static DynamicCanvas Instance { get; private set; }
+    [LabelText("停产提示 Prefab")]
+    [SerializeField] private GameObject _statusPrefab;
+
+    [LabelText("库存显示 Prefab")]
+    [SerializeField] private GameObject _stockPrefab;
+
+    public GameObject StatusPrefab => _statusPrefab;
+    public GameObject StockPrefab => _stockPrefab;
 
     private Canvas _canvas;
     private Camera _camera;
@@ -17,22 +28,25 @@ public class DynamicCanvas : MonoBehaviour
     }
 
     private List<AnchoredPanel> _panels = new List<AnchoredPanel>();
+    private List<BuildingStatusUI> _buildingStatusHandlers = new List<BuildingStatusUI>();
+    private List<WarehouseStockUI> _warehouseStockHandlers = new List<WarehouseStockUI>();
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
         _canvas = GetComponent<Canvas>();
         _camera = Camera.main;
     }
 
-    // 注册一个世界坐标锚点，返回跟随该锚点的 RectTransform 容器
-    // 调用方在容器内自由添加 UI 子元素
+    public void InitUIs(IReadOnlyList<ProductionBuilding> buildings)
+    {
+        foreach (ProductionBuilding building in buildings)
+        {
+            _buildingStatusHandlers.Add(new BuildingStatusUI(building, this));
+            _warehouseStockHandlers.Add(new WarehouseStockUI(building.InputWarehouse, this));
+            _warehouseStockHandlers.Add(new WarehouseStockUI(building.OutputWarehouse, this));
+        }
+    }
+
     public RectTransform RegisterAnchor(Transform worldAnchor)
     {
         GameObject panelGo = new GameObject("AnchoredPanel", typeof(RectTransform));
@@ -46,6 +60,23 @@ public class DynamicCanvas : MonoBehaviour
 
         _panels.Add(new AnchoredPanel { WorldAnchor = worldAnchor, Panel = panel });
         return panel;
+    }
+
+    public GameObject InstantiateInPanel(GameObject prefab, RectTransform panel)
+    {
+        return Object.Instantiate(prefab, panel);
+    }
+
+    private void OnDestroy()
+    {
+        foreach (BuildingStatusUI handler in _buildingStatusHandlers)
+        {
+            handler.Dispose();
+        }
+        foreach (WarehouseStockUI handler in _warehouseStockHandlers)
+        {
+            handler.Dispose();
+        }
     }
 
     private void LateUpdate()

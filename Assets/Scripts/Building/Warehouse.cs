@@ -17,9 +17,6 @@ public class Warehouse : MonoBehaviour
     [LabelText("出入口")]
     [SerializeField] public Transform Port;
 
-    [LabelText("初始库存（测试用）")]
-    [SerializeField] private List<InitialStock> _initialStocks = new List<InitialStock>();
-
     public int Capacity { get; private set; }
     public int TotalCount { get; private set; }
     public bool IsInput { get; private set; }                        // true = 接收投递（输入仓库），false = 提供拾取（输出仓库）
@@ -39,12 +36,6 @@ public class Warehouse : MonoBehaviour
         AcceptedResourceIds = acceptedResourceIds ?? new List<int>();
         TotalCount = 0;
         _stocks.Clear();
-
-        foreach (var entry in _initialStocks)
-        {
-            if (entry.Amount > 0)
-                TryAdd(entry.ResourceId, entry.Amount);
-        }
     }
 
     public int GetCount(int resourceId)

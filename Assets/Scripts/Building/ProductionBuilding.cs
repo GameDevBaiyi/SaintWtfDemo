@@ -24,6 +24,9 @@ public class ProductionBuilding : MonoBehaviour
     public event Action<StopReason> OnProductionStopped;
     public event Action OnProductionResumed;
 
+    public Warehouse InputWarehouse => _inputWarehouse;
+    public Warehouse OutputWarehouse => _outputWarehouse;
+
     private BuildingConfig _config;
     private bool _isStopped;
     private StopReason _currentStopReason;
@@ -35,7 +38,8 @@ public class ProductionBuilding : MonoBehaviour
     private List<ResourceConfig> _outputAnimConfigs = new List<ResourceConfig>();
     private List<int> _outputAnimCounts = new List<int>();
 
-    private void Start()
+    // 由 BuildingManager 在 Awake 阶段调用，早于任何 Start()
+    public void Init()
     {
         _config = BuildingConfigSO.Instance.GetById(_configId);
         if (_config == null)
@@ -50,33 +54,43 @@ public class ProductionBuilding : MonoBehaviour
         if (_config.Inputs != null)
         {
             foreach (InputRequirement req in _config.Inputs)
+            {
                 inputResourceIds.Add(req.ResourceId);
+            }
         }
 
         List<int> outputResourceIds = new List<int>();
         if (_config.Outputs != null)
         {
             foreach (OutputRequirement req in _config.Outputs)
+            {
                 outputResourceIds.Add(req.ResourceId);
+            }
         }
 
-        _inputWarehouse.Init(capacity,  isInput: true,  acceptedResourceIds: inputResourceIds);
+        _inputWarehouse.Init(capacity, isInput: true, acceptedResourceIds: inputResourceIds);
         _outputWarehouse.Init(capacity, isInput: false, acceptedResourceIds: outputResourceIds);
 
         // 校验并缓存输出动画时长
-        if (Port != null && _outputWarehouse != null && _outputWarehouse.Port != null
-            && _config.Outputs != null && _config.Outputs.Count > 0)
+        if (Port != null
+         && _outputWarehouse != null
+         && _outputWarehouse.Port != null
+         && _config.Outputs != null
+         && _config.Outputs.Count > 0)
         {
             float animDistance = Vector3.Distance(Port.position, _outputWarehouse.Port.position);
             _outputAnimDuration = animDistance / CommonConfigSO.Instance.ResourceMoveSpeed;
             if (_outputAnimDuration >= _config.ProductionInterval)
             {
-                Debug.LogError(
-                    $"[ProductionBuilding] '{_config.Name}' 输出动画时长 ({_outputAnimDuration:F2}s) >= 生产周期 ({_config.ProductionInterval:F2}s)，" +
-                    $"将导致周期被阻塞。请加大 ProductionInterval 或提高 ResourceMoveSpeed。", this);
+                Debug.LogError($"[ProductionBuilding] '{_config.Name}' 输出动画时长 ({_outputAnimDuration:F2}s) >= 生产周期 ({_config.ProductionInterval:F2}s)，" + $"将导致周期被阻塞。请加大 ProductionInterval 或提高 ResourceMoveSpeed。",
+                               this);
             }
         }
+    }
 
+    private void Start()
+    {
+        if (_config == null) return;
         RunProductionLoopAsync().Forget();
     }
 
@@ -109,10 +123,8 @@ public class ProductionBuilding : MonoBehaviour
             float waitTime = Mathf.Max(0f, _config.ProductionInterval - _outputAnimDuration);
             await UniTask.Delay(TimeSpan.FromSeconds(waitTime), cancellationToken: token);
 
-
             // 周期结尾：播放「建筑 → 仓库」动画，动画完成后写入输出资源
             await PlayOutputAnimAsync();
-
 
             // 周期结尾：实际扣除输入资源
             if (_config.Inputs != null)

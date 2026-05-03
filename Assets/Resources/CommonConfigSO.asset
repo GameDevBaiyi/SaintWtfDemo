@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62fc6ade01500514e97d4a11a9a9f32f, type: 3}
   m_Name: CommonConfigSO
   m_EditorClassIdentifier: Assembly-CSharp::CommonConfigSO
-  _warehouseCapacity: 10
+  _warehouseCapacity: 20
   _resourceMoveSpeed: 15
   _playerMoveSpeed: 5
   _playerRotateSpeed: 10
